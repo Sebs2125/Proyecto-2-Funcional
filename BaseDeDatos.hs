@@ -15,7 +15,7 @@ data Tabla = Tabla
     }
 
 --Tipo suma: la base de datos es una lista de tablas
-data DataBase = DataBase [Table]
+data DataBase = DataBase [Tabla]
 
 --Tipo suma: errores propios, sin excepciones
 data DBError =
@@ -33,7 +33,7 @@ instance Show Value where
     show Null = "NULL"
 
 instance Show Row where
-    show ( Row pares ) = unwords ( map (\ ( k,v ) -> k ++ "=" ++ show v ) pares
+    show ( Row pares ) = unwords ( map (\ ( k,v ) -> k ++ "=" ++ show v ) pares )
 
 instance Show DBError where
     show ( TablaNotFound t ) = "Error: tabla '" ++ t ++ "' no existe"
@@ -49,10 +49,10 @@ vaciaDB = DataBase []
 
 --Buscar tabla por nombre: recursividad de manera estructural en una lista
 revisarTabla :: String -> DataBase -> Either DBError Tabla
-revisarTabla nombre ( Database [] ) = Left ( TablaNotFound nombre )
-revisarTabla nombre ( Database ( t:ts ) )
-  | tablaNombre t == nombre = Right t
-  | otherwise = revisarTabla nombre ( Database ts )
+revisarTabla nombre ( DataBase [] ) = Left ( TablaNotFound nombre )
+revisarTabla nombre ( DataBase ( t:ts ) )
+  | tableName t == nombre = Right t
+  | otherwise = revisarTabla nombre ( DataBase ts )
 
 -- Buscar valor de una columna en una fila con recursión por pares
 revisarValor :: String -> Row -> Maybe Value
@@ -62,24 +62,24 @@ revisarValor col ( Row ( ( k,v ):resto ) )
   | otherwise = revisarValor col ( Row resto )
 
 -- Insertar tabla en la base de datos
-insertarTable :: Table -> Database -> Database
-insertarTable t ( Database ts ) = Database ( t : ts )
+insertarTable :: Tabla -> DataBase -> DataBase
+insertarTable t ( DataBase ts ) = DataBase ( t : ts )
 
 -- Contar filas usando fold
-rowContador :: Table -> Int
+rowContador :: Tabla -> Int
 rowContador t = foldr (\_ acc -> acc + 1) 0 ( rows t )
 
 --Ejemplo de Base de Datos:
-sampleDB :: Database
-sampleDB = insertTable deptos (insertTable empleados emptyDB)
+sampleDB :: DataBase
+sampleDB = insertarTable deptos (insertarTable empleados vaciaDB)
   where
-    empleados = Table "empleados" ["id", "nombre", "depto", "salario"]
-      [ Row [("id", VInt 1), ("nombre", VText "Ana"),    ("depto", VText "IT"), ("salario", VInt 80000)]
-      , Row [("id", VInt 2), ("nombre", VText "Carlos"), ("depto", VText "HR"), ("salario", VInt 65000)]
-      , Row [("id", VInt 3), ("nombre", VText "Beatriz"),("depto", VText "IT"), ("salario", VInt 90000)]
-      , Row [("id", VInt 4), ("nombre", VText "David"),  ("depto", VText "HR"), ("salario", VInt 70000)]
+    empleados = Tabla "empleados" ["id", "nombre", "depto", "salario"]
+      [ Row [("id", Entero 1), ("nombre", Texto "Ana"),    ("depto", Texto "IT"), ("salario", Entero 80000)]
+      , Row [("id", Entero 2), ("nombre", Texto "Carlos"), ("depto", Texto "HR"), ("salario", Entero 65000)]
+      , Row [("id", Entero 3), ("nombre", Texto "Beatriz"),("depto", Texto "IT"), ("salario", Entero 90000)]
+      , Row [("id", Entero 4), ("nombre", Texto "David"),  ("depto", Texto "HR"), ("salario", Entero 70000)]
       ]
-    deptos = Table "deptos" ["nombre", "piso"]
-      [ Row [("nombre", VText "IT"), ("piso", VInt 3)]
-      , Row [("nombre", VText "HR"), ("piso", VInt 1)]
+    deptos = Tabla "deptos" ["nombre", "piso"]
+      [ Row [("nombre", Texto "IT"), ("piso", Entero 3)]
+      , Row [("nombre", Texto "HR"), ("piso", Entero 1)]
       ]
