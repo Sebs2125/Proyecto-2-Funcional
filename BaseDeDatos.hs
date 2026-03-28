@@ -69,6 +69,15 @@ insertarTable t ( DataBase ts ) = DataBase ( t : ts )
 rowContador :: Tabla -> Int
 rowContador t = foldr (\_ acc -> acc + 1) 0 ( rows t )
 
+--actualizar una tabla existente
+actualizarTabla :: Tabla -> DataBase -> DataBase
+actualizarTabla nueva ( DataBase ts ) =
+    DataBase ( map reemplazar ts )
+  where
+    reemplazar t
+      | tableName t == tableName nueva = nueva
+      | otherwise                      = t
+
 --Ejemplo de Base de Datos:
 sampleDB :: DataBase
 sampleDB = insertarTable deptos (insertarTable empleados vaciaDB)
